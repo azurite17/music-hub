@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import FeedToolbar from '../components/posts/FeedToolbar'
 import PostCard from '../components/posts/PostCard'
+import usePostQueryState from '../hooks/usePostQueryState'
 import { fetchPosts } from '../services/posts'
 
 function HomeFeedPage() {
+  const { queryState, updateQueryState } = usePostQueryState()
   const [posts, setPosts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -12,7 +15,11 @@ function HomeFeedPage() {
     async function loadPosts() {
       try {
         setIsLoading(true)
-        const data = await fetchPosts()
+        setError('')
+        const data = await fetchPosts({
+          searchTerm: queryState.search,
+          sortBy: queryState.sortBy,
+        })
         setPosts(data)
       } catch (loadError) {
         setError(loadError.message ?? 'Unable to load posts.')
@@ -22,12 +29,23 @@ function HomeFeedPage() {
     }
 
     loadPosts()
-  }, [])
+  }, [queryState.search, queryState.sortBy])
 
   return (
     <section className="page-section">
       <h2>Home Feed</h2>
       <p>Latest discussions from the Music Hub community.</p>
+      <FeedToolbar
+        search={queryState.search}
+        sortBy={queryState.sortBy}
+        onSearchChange={(nextSearch) =>
+          updateQueryState({ search: nextSearch, sortBy: queryState.sortBy })
+        }
+        onSortChange={(nextSortBy) =>
+          updateQueryState({ search: queryState.search, sortBy: nextSortBy })
+        }
+        onReset={() => updateQueryState({ search: '', sortBy: 'created_at' })}
+      />
 
       {isLoading ? <p className="status-text">Loading posts...</p> : null}
       {error ? <p className="form-error">{error}</p> : null}

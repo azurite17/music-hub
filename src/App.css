@@ -171,6 +171,41 @@
   gap: 0.75rem;
 }
 
+.feed-toolbar {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: 2fr 1fr auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.toolbar-field {
+  display: grid;
+  gap: 0.35rem;
+  text-align: left;
+}
+
+.toolbar-field span {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+}
+
+.toolbar-field input,
+.toolbar-field select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.7rem;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 0.45rem;
+}
+
 .post-card {
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -261,4 +296,10 @@
 
 .section-gap {
   margin-top: 0.8rem;
+}
+
+@media (max-width: 760px) {
+  .feed-toolbar {
+    grid-template-columns: 1fr;
+  }
 }

@@ -1,10 +1,18 @@
 import { supabase } from '../lib/supabaseClient'
 
-export async function fetchPosts() {
-  const { data, error } = await supabase
+export async function fetchPosts({ searchTerm = '', sortBy = 'created_at' } = {}) {
+  const resolvedSortBy = sortBy === 'upvotes_count' ? 'upvotes_count' : 'created_at'
+  let query = supabase
     .from('posts')
     .select('id, title, upvotes_count, created_at')
-    .order('created_at', { ascending: false })
+    .order(resolvedSortBy, { ascending: false })
+
+  const trimmedSearch = searchTerm.trim()
+  if (trimmedSearch) {
+    query = query.ilike('title', `%${trimmedSearch}%`)
+  }
+
+  const { data, error } = await query
 
   if (error) throw error
   return data ?? []
