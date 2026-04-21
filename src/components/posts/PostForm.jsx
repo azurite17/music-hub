@@ -6,8 +6,14 @@ const initialFormState = {
   imageUrl: '',
 }
 
-function PostForm({ onSubmit, isSubmitting }) {
-  const [formData, setFormData] = useState(initialFormState)
+function PostForm({
+  onSubmit,
+  isSubmitting,
+  initialValues = initialFormState,
+  submitLabel = 'Publish post',
+  submittingLabel = 'Publishing...',
+}) {
+  const [formData, setFormData] = useState(initialValues)
   const [error, setError] = useState('')
 
   function handleChange(event) {
@@ -73,7 +79,7 @@ function PostForm({ onSubmit, isSubmitting }) {
       {error ? <p className="form-error">{error}</p> : null}
 
       <button className="button-link" type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Publishing...' : 'Publish post'}
+        {isSubmitting ? submittingLabel : submitLabel}
       </button>
     </form>
   )
