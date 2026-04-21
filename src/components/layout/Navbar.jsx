@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { useAuth } from '../../hooks/useAuth'
 
 const navItems = [
   { to: '/', label: 'Home Feed', end: true },
@@ -9,11 +10,16 @@ const navItems = [
 ]
 
 function Navbar() {
+  const { isLoggedIn, user } = useAuth()
+
   return (
     <header className="site-header">
       <div className="site-branding">
         <h1>Music Hub</h1>
         <p>Your space for music conversations.</p>
+        <p className="auth-indicator">
+          {isLoggedIn ? `Signed in: ${user?.email}` : 'Not logged in'}
+        </p>
       </div>
       <nav className="main-nav" aria-label="Main navigation">
         {navItems.map((item) => (

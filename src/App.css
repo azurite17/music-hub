@@ -28,6 +28,10 @@
   font-size: 0.95rem;
 }
 
+.auth-indicator {
+  font-size: 0.85rem;
+}
+
 .main-nav {
   display: flex;
   gap: 0.5rem;
@@ -296,6 +300,45 @@
 
 .section-gap {
   margin-top: 0.8rem;
+}
+
+.oauth-block {
+  margin-top: 1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+.account-panel {
+  margin-top: 1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+.summary-card {
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  text-align: left;
+}
+
+.summary-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.summary-card-header h3 {
+  margin: 0;
+}
+
+.summary-text {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--brand-soft);
+  white-space: pre-wrap;
 }
 
 @media (max-width: 760px) {

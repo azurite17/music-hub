@@ -2,13 +2,17 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import CommentForm from '../components/comments/CommentForm'
 import CommentList from '../components/comments/CommentList'
+import PostSummaryCard from '../components/posts/PostSummaryCard'
+import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabaseClient'
 import { createComment, fetchComments } from '../services/comments'
+import { generatePostSummary } from '../services/summary'
 import { deletePost, fetchPostById, upvotePost } from '../services/posts'
 
 function PostDetailPage() {
   const { postId } = useParams()
   const navigate = useNavigate()
+  const { isLoggedIn } = useAuth()
   const [post, setPost] = useState(null)
   const [comments, setComments] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -16,6 +20,9 @@ function PostDetailPage() {
   const [error, setError] = useState('')
   const [actionError, setActionError] = useState('')
   const [isOwner, setIsOwner] = useState(false)
+  const [summary, setSummary] = useState('')
+  const [summaryError, setSummaryError] = useState('')
+  const [isSummaryLoading, setIsSummaryLoading] = useState(false)
 
   useEffect(() => {
     async function loadDetail() {
@@ -80,6 +87,40 @@ function PostDetailPage() {
     }
   }
 
+  async function handleGenerateSummary() {
+    if (!post) return
+    setSummaryError('')
+    setIsSummaryLoading(true)
+
+    try {
+      const payload = {
+        title: post.title,
+        description: post.content ?? '',
+        upvotes: post.upvotes_count ?? 0,
+        comments: comments.map((comment) => comment.content),
+        posts: [
+          {
+            id: post.id,
+            title: post.title,
+            content: post.content ?? '',
+            upvotes: post.upvotes_count ?? 0,
+            commentsCount: comments.length,
+          },
+        ],
+      }
+
+      const result = await generatePostSummary(payload)
+      setSummary(result?.summary ?? 'No summary returned.')
+    } catch (summaryLoadError) {
+      setSummaryError(
+        summaryLoadError.message ??
+          'Could not generate summary. Confirm your Edge Function is deployed.',
+      )
+    } finally {
+      setIsSummaryLoading(false)
+    }
+  }
+
   return (
     <section className="page-section">
       {isLoading ? <p className="status-text">Loading post...</p> : null}
@@ -123,12 +164,24 @@ function PostDetailPage() {
 
           <section className="comments-section">
             <h3>Comments</h3>
-            <CommentForm
-              onSubmit={handleCreateComment}
-              isSubmitting={isCommentSubmitting}
-            />
+            {isLoggedIn ? (
+              <CommentForm
+                onSubmit={handleCreateComment}
+                isSubmitting={isCommentSubmitting}
+              />
+            ) : (
+              <p className="status-text">Login to leave a comment.</p>
+            )}
             <CommentList comments={comments} />
           </section>
+
+          <PostSummaryCard
+            summary={summary}
+            isGenerating={isSummaryLoading}
+            onGenerate={handleGenerateSummary}
+            error={summaryError}
+            hasContentToSummarize={Boolean(post.content?.trim() || comments.length)}
+          />
         </>
       ) : null}
     </section>
