@@ -11,6 +11,10 @@
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   padding: 1rem 1.5rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .site-branding h1 {
@@ -25,10 +29,10 @@
 }
 
 .main-nav {
-  margin-top: 0.9rem;
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .nav-link {
@@ -59,6 +63,18 @@
   box-sizing: border-box;
 }
 
+@media (max-width: 760px) {
+  .site-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .main-nav {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
 .page-section {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -87,9 +103,93 @@
   border: 1px solid var(--brand);
   color: var(--text);
   background: var(--brand-soft);
+  cursor: pointer;
 }
 
 .button-link.secondary {
   border-color: var(--border);
   background: transparent;
+}
+
+.button-link:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.post-form {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.form-field {
+  display: grid;
+  gap: 0.35rem;
+  text-align: left;
+}
+
+.form-field span {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+}
+
+.form-field input,
+.form-field textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.7rem;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.form-error {
+  margin: 0;
+  color: #b42318;
+}
+
+.form-success {
+  margin-top: 0.75rem;
+  margin-bottom: 0;
+  color: #107c41;
+}
+
+.status-text {
+  color: var(--text-muted);
+}
+
+.post-list {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.post-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.8rem;
+  text-align: left;
+}
+
+.post-card h3 {
+  margin: 0;
+}
+
+.post-title-link {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.post-title-link:hover {
+  text-decoration: underline;
+}
+
+.post-meta {
+  margin-top: 0.45rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  color: var(--text-muted);
+  font-size: 0.9rem;
 }
