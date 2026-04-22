@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import PostForm from '../components/posts/PostForm'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
+import { DEFAULT_POST_FLAG } from '../constants/postFlags'
 import { fetchPostById, updatePost } from '../services/posts'
 
 function EditPostPage() {
@@ -13,6 +15,7 @@ function EditPostPage() {
     title: '',
     content: '',
     imageUrl: '',
+    flag: DEFAULT_POST_FLAG,
   })
 
   useEffect(() => {
@@ -24,6 +27,7 @@ function EditPostPage() {
           title: post.title ?? '',
           content: post.content ?? '',
           imageUrl: post.image_url ?? '',
+          flag: post.flag ?? DEFAULT_POST_FLAG,
         })
       } catch (loadError) {
         setError(loadError.message ?? 'Unable to load post for editing.')
@@ -52,7 +56,7 @@ function EditPostPage() {
   return (
     <section className="page-section">
       <h2>Edit Post</h2>
-      {isLoading ? <p className="status-text">Loading editor...</p> : null}
+      {isLoading ? <LoadingSpinner label="Loading editor..." /> : null}
       {error ? <p className="form-error">{error}</p> : null}
       {!isLoading ? (
         <PostForm
@@ -61,6 +65,7 @@ function EditPostPage() {
           initialValues={initialValues}
           submitLabel="Save changes"
           submittingLabel="Saving..."
+          clearOnSuccess={false}
         />
       ) : null}
     </section>

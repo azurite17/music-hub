@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { supabase } from '../../lib/supabaseClient'
 
 const navItems = [
   { to: '/', label: 'Home Feed', end: true },
@@ -11,6 +12,10 @@ const navItems = [
 
 function Navbar() {
   const { isLoggedIn, user } = useAuth()
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+  }
 
   return (
     <header className="site-header">
@@ -32,6 +37,11 @@ function Navbar() {
             {item.label}
           </NavLink>
         ))}
+        {isLoggedIn ? (
+          <button type="button" className="nav-link nav-button" onClick={handleLogout}>
+            Logout
+          </button>
+        ) : null}
       </nav>
     </header>
   )

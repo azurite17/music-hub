@@ -3,17 +3,24 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import CommentForm from '../components/comments/CommentForm'
 import CommentList from '../components/comments/CommentList'
 import PostSummaryCard from '../components/posts/PostSummaryCard'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabaseClient'
 import { createComment, fetchComments } from '../services/comments'
+import {
+  deletePost,
+  fetchPostById,
+  fetchPostThreadRef,
+  upvotePost,
+} from '../services/posts'
 import { generatePostSummary } from '../services/summary'
-import { deletePost, fetchPostById, upvotePost } from '../services/posts'
 
 function PostDetailPage() {
   const { postId } = useParams()
   const navigate = useNavigate()
   const { isLoggedIn } = useAuth()
   const [post, setPost] = useState(null)
+  const [repostParent, setRepostParent] = useState(null)
   const [comments, setComments] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false)
@@ -37,6 +44,13 @@ function PostDetailPage() {
         setPost(postData)
         setComments(commentData)
         setIsOwner(authData?.data?.user?.id === postData.author_id)
+
+        if (postData.repost_of_post_id) {
+          const parent = await fetchPostThreadRef(postData.repost_of_post_id)
+          setRepostParent(parent)
+        } else {
+          setRepostParent(null)
+        }
       } catch (loadError) {
         setError(loadError.message ?? 'Unable to load this post.')
       } finally {
@@ -105,12 +119,15 @@ function PostDetailPage() {
             content: post.content ?? '',
             upvotes: post.upvotes_count ?? 0,
             commentsCount: comments.length,
+            flag: post.flag,
+            repostOf: post.repost_of_post_id,
           },
         ],
       }
 
       const result = await generatePostSummary(payload)
       setSummary(result?.summary ?? 'No summary returned.')
+      setSummaryError(result?.warning ?? '')
     } catch (summaryLoadError) {
       setSummaryError(
         summaryLoadError.message ??
@@ -121,14 +138,36 @@ function PostDetailPage() {
     }
   }
 
+  const flagLabel = post?.flag
+    ? post.flag.replace(/^\w/, (c) => c.toUpperCase())
+    : ''
+
   return (
     <section className="page-section">
-      {isLoading ? <p className="status-text">Loading post...</p> : null}
+      {isLoading ? <LoadingSpinner label="Loading post..." /> : null}
       {error ? <p className="form-error">{error}</p> : null}
 
       {!isLoading && !error && post ? (
         <>
-          <h2>{post.title}</h2>
+          <div className="post-detail-head">
+            <h2>{post.title}</h2>
+            {post.flag ? <span className="post-flag detail">{flagLabel}</span> : null}
+          </div>
+
+          {post.repost_of_post_id && repostParent ? (
+            <div className="repost-thread-card">
+              <p className="repost-thread-label">Part of a thread — replying to</p>
+              <Link to={`/posts/${repostParent.id}`} className="repost-thread-link">
+                {repostParent.title}
+              </Link>
+            </div>
+          ) : null}
+          {post.repost_of_post_id && !repostParent ? (
+            <p className="status-text">
+              Referenced post was removed or is unavailable.
+            </p>
+          ) : null}
+
           <p className="post-meta-line">
             Posted on {new Date(post.created_at).toLocaleString()}
           </p>
@@ -143,6 +182,13 @@ function PostDetailPage() {
             <button className="button-link" type="button" onClick={handleUpvote}>
               Upvote
             </button>
+
+            <Link
+              to={`/posts/new?repost=${encodeURIComponent(post.id)}`}
+              className="button-link secondary"
+            >
+              Repost / quote
+            </Link>
 
             {isOwner ? (
               <>

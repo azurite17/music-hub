@@ -33,7 +33,14 @@ function App() {
             </AuthGuard>
           }
         />
-        <Route path="/my-posts" element={<MyPostsPage />} />
+        <Route
+          path="/my-posts"
+          element={
+            <AuthGuard>
+              <MyPostsPage />
+            </AuthGuard>
+          }
+        />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />

@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom'
+import LoadingSpinner from '../ui/LoadingSpinner'
 import { useAuth } from '../../hooks/useAuth'
 
 function AuthGuard({ children }) {
@@ -6,7 +7,7 @@ function AuthGuard({ children }) {
   const location = useLocation()
 
   if (isAuthLoading) {
-    return <p className="status-text">Checking authentication...</p>
+    return <LoadingSpinner label="Checking authentication..." />
   }
 
   if (!isLoggedIn) {

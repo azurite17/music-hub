@@ -22,10 +22,17 @@ Deno.serve(async (req) => {
     const model = Deno.env.get('LLM_MODEL') ?? 'openai/gemma4:26b'
 
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'Missing LLM_API_KEY secret.' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return new Response(
+        JSON.stringify({
+          summary:
+            'AI summary is temporarily unavailable because the LLM key is missing. You can still review the post details, upvotes, and comment activity normally.',
+          warning: 'Missing LLM_API_KEY secret. Fallback summary used.',
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      )
     }
 
     const payload = await req.json()
@@ -64,14 +71,25 @@ Requirements:
     })
 
     if (!llmResponse.ok) {
-      const errorText = await llmResponse.text()
+      const responseText = await llmResponse.text()
+      const safeDetails = responseText.slice(0, 260).replace(/\s+/g, ' ').trim()
+      const fallbackSummary = [
+        `Post "${title}" currently has ${upvotes} upvotes and ${comments.length} comments.`,
+        description
+          ? `Main topic: ${description.slice(0, 180)}${description.length > 180 ? '…' : ''}`
+          : 'The post has little description, so feedback likely relies on comments.',
+        comments.length
+          ? `Comment trend sample: ${String(comments[0]).slice(0, 120)}${String(comments[0]).length > 120 ? '…' : ''}`
+          : 'No comment sentiment is available yet.',
+      ].join(' ')
+
       return new Response(
         JSON.stringify({
-          error: `LLM request failed (${llmResponse.status}).`,
-          details: errorText,
+          summary: fallbackSummary,
+          warning: `LLM request failed (${llmResponse.status}) at ${endpoint} using model ${model}. Details: ${safeDetails || 'none'}`,
         }),
         {
-          status: 502,
+          status: 200,
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
@@ -120,10 +138,12 @@ Requirements:
   } catch (error) {
     return new Response(
       JSON.stringify({
-        error: error instanceof Error ? error.message : 'Unknown summary error.',
+        summary:
+          'AI summary is temporarily unavailable. Try again in a moment after checking Edge Function deploy and secrets.',
+        warning: error instanceof Error ? error.message : 'Unknown summary error.',
       }),
       {
-        status: 500,
+        status: 200,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',

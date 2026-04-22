@@ -1,4 +1,14 @@
-function FeedToolbar({ search, sortBy, onSearchChange, onSortChange, onReset }) {
+import { POST_FLAG_OPTIONS } from '../../constants/postFlags'
+
+function FeedToolbar({
+  search,
+  sortBy,
+  flag,
+  onSearchChange,
+  onSortChange,
+  onFlagChange,
+  onReset,
+}) {
   return (
     <div className="feed-toolbar">
       <label className="toolbar-field">
@@ -15,6 +25,18 @@ function FeedToolbar({ search, sortBy, onSearchChange, onSortChange, onReset }) 
         <select value={sortBy} onChange={(event) => onSortChange(event.target.value)}>
           <option value="created_at">Newest</option>
           <option value="upvotes_count">Most upvoted</option>
+        </select>
+      </label>
+
+      <label className="toolbar-field">
+        <span>Filter by flag</span>
+        <select value={flag} onChange={(event) => onFlagChange(event.target.value)}>
+          <option value="all">All</option>
+          {POST_FLAG_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
         </select>
       </label>
 

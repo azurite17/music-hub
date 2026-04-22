@@ -1,4 +1,5 @@
-:root {
+:root,
+[data-theme='default'] {
   --bg: #f6f7fb;
   --surface: #ffffff;
   --border: #d8deec;
@@ -9,6 +10,36 @@
   font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.45;
   font-weight: 400;
+}
+
+[data-theme='ocean'] {
+  --bg: #e8f4fc;
+  --surface: #ffffff;
+  --border: #b8d4e8;
+  --text: #0a2540;
+  --text-muted: #3d5a73;
+  --brand: #0b6bcb;
+  --brand-soft: #dbeafe;
+}
+
+[data-theme='warm'] {
+  --bg: #fdf6f0;
+  --surface: #fffdfb;
+  --border: #e8d5c4;
+  --text: #2d1810;
+  --text-muted: #6b4f3f;
+  --brand: #c2410c;
+  --brand-soft: #ffedd5;
+}
+
+[data-theme='dark'] {
+  --bg: #12141a;
+  --surface: #1a1d26;
+  --border: #2e3444;
+  --text: #e8eaed;
+  --text-muted: #9aa0b4;
+  --brand: #a78bfa;
+  --brand-soft: #2e2640;
 }
 
 * {

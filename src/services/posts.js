@@ -1,10 +1,17 @@
 import { supabase } from '../lib/supabaseClient'
+import { DEFAULT_POST_FLAG } from '../constants/postFlags'
 
-export async function fetchPosts({ searchTerm = '', sortBy = 'created_at' } = {}) {
+export async function fetchPosts({
+  searchTerm = '',
+  sortBy = 'created_at',
+  flagFilter = 'all',
+} = {}) {
   const resolvedSortBy = sortBy === 'upvotes_count' ? 'upvotes_count' : 'created_at'
   let query = supabase
     .from('posts')
-    .select('id, title, upvotes_count, created_at')
+    .select(
+      'id, title, upvotes_count, created_at, content, image_url, flag, repost_of_post_id',
+    )
     .order(resolvedSortBy, { ascending: false })
 
   const trimmedSearch = searchTerm.trim()
@@ -12,7 +19,24 @@ export async function fetchPosts({ searchTerm = '', sortBy = 'created_at' } = {}
     query = query.ilike('title', `%${trimmedSearch}%`)
   }
 
+  if (flagFilter && flagFilter !== 'all') {
+    query = query.eq('flag', flagFilter)
+  }
+
   const { data, error } = await query
+
+  if (error) throw error
+  return data ?? []
+}
+
+export async function fetchPostsByAuthor(authorId) {
+  const { data, error } = await supabase
+    .from('posts')
+    .select(
+      'id, title, upvotes_count, created_at, content, image_url, flag, repost_of_post_id',
+    )
+    .eq('author_id', authorId)
+    .order('created_at', { ascending: false })
 
   if (error) throw error
   return data ?? []
@@ -27,11 +51,14 @@ export async function createPost(postPayload) {
     throw new Error('You must be logged in to create a post.')
   }
 
+  const repostId = postPayload.repostOfPostId?.trim()
   const payload = {
     author_id: userId,
     title: postPayload.title.trim(),
     content: postPayload.content.trim() || null,
     image_url: postPayload.imageUrl.trim() || null,
+    flag: postPayload.flag?.trim() || DEFAULT_POST_FLAG,
+    repost_of_post_id: repostId || null,
   }
 
   const { data, error } = await supabase
@@ -47,7 +74,9 @@ export async function createPost(postPayload) {
 export async function fetchPostById(postId) {
   const { data, error } = await supabase
     .from('posts')
-    .select('id, author_id, title, content, image_url, upvotes_count, created_at')
+    .select(
+      'id, author_id, title, content, image_url, upvotes_count, created_at, flag, repost_of_post_id',
+    )
     .eq('id', postId)
     .single()
 
@@ -55,18 +84,25 @@ export async function fetchPostById(postId) {
   return data
 }
 
-export async function upvotePost(postId) {
-  const post = await fetchPostById(postId)
-
+export async function fetchPostThreadRef(postId) {
+  if (!postId) return null
   const { data, error } = await supabase
     .from('posts')
-    .update({ upvotes_count: (post.upvotes_count ?? 0) + 1 })
+    .select('id, title')
     .eq('id', postId)
-    .select('upvotes_count')
-    .single()
+    .maybeSingle()
 
   if (error) throw error
   return data
+}
+
+export async function upvotePost(postId) {
+  const { data, error } = await supabase.rpc('increment_post_upvote', {
+    p_post_id: postId,
+  })
+
+  if (error) throw error
+  return { upvotes_count: data }
 }
 
 export async function updatePost(postId, postPayload) {
@@ -74,6 +110,7 @@ export async function updatePost(postId, postPayload) {
     title: postPayload.title.trim(),
     content: postPayload.content.trim() || null,
     image_url: postPayload.imageUrl.trim() || null,
+    flag: postPayload.flag?.trim() || DEFAULT_POST_FLAG,
     updated_at: new Date().toISOString(),
   }
 

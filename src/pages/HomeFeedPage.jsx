@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import FeedToolbar from '../components/posts/FeedToolbar'
 import PostCard from '../components/posts/PostCard'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
+import { usePreferences } from '../hooks/usePreferences'
 import usePostQueryState from '../hooks/usePostQueryState'
 import { fetchPosts } from '../services/posts'
 
 function HomeFeedPage() {
   const { queryState, updateQueryState } = usePostQueryState()
+  const { feedRich } = usePreferences()
   const [posts, setPosts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -19,6 +22,7 @@ function HomeFeedPage() {
         const data = await fetchPosts({
           searchTerm: queryState.search,
           sortBy: queryState.sortBy,
+          flagFilter: queryState.flag,
         })
         setPosts(data)
       } catch (loadError) {
@@ -29,7 +33,7 @@ function HomeFeedPage() {
     }
 
     loadPosts()
-  }, [queryState.search, queryState.sortBy])
+  }, [queryState.search, queryState.sortBy, queryState.flag])
 
   return (
     <section className="page-section">
@@ -38,16 +42,34 @@ function HomeFeedPage() {
       <FeedToolbar
         search={queryState.search}
         sortBy={queryState.sortBy}
+        flag={queryState.flag}
         onSearchChange={(nextSearch) =>
-          updateQueryState({ search: nextSearch, sortBy: queryState.sortBy })
+          updateQueryState({
+            search: nextSearch,
+            sortBy: queryState.sortBy,
+            flag: queryState.flag,
+          })
         }
         onSortChange={(nextSortBy) =>
-          updateQueryState({ search: queryState.search, sortBy: nextSortBy })
+          updateQueryState({
+            search: queryState.search,
+            sortBy: nextSortBy,
+            flag: queryState.flag,
+          })
         }
-        onReset={() => updateQueryState({ search: '', sortBy: 'created_at' })}
+        onFlagChange={(nextFlag) =>
+          updateQueryState({
+            search: queryState.search,
+            sortBy: queryState.sortBy,
+            flag: nextFlag,
+          })
+        }
+        onReset={() =>
+          updateQueryState({ search: '', sortBy: 'created_at', flag: 'all' })
+        }
       />
 
-      {isLoading ? <p className="status-text">Loading posts...</p> : null}
+      {isLoading ? <LoadingSpinner label="Loading posts..." /> : null}
       {error ? <p className="form-error">{error}</p> : null}
 
       {!isLoading && !error && posts.length === 0 ? (
@@ -62,7 +84,7 @@ function HomeFeedPage() {
       {!isLoading && !error && posts.length > 0 ? (
         <div className="post-list">
           {posts.map((post) => (
-            <PostCard key={post.id} post={post} />
+            <PostCard key={post.id} post={post} feedRich={feedRich} />
           ))}
         </div>
       ) : null}

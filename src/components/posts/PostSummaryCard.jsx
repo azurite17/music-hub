@@ -25,7 +25,7 @@ function PostSummaryCard({
         </p>
       ) : null}
 
-      {error ? <p className="form-error">{error}</p> : null}
+      {error ? <p className="summary-warning">{error}</p> : null}
       {summary ? <p className="summary-text">{summary}</p> : null}
       {!summary && !error && hasContentToSummarize ? (
         <p className="status-text">No summary generated yet.</p>
