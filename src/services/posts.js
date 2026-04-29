@@ -1,18 +1,78 @@
-import { supabase } from '../lib/supabaseClient'
 import { DEFAULT_POST_FLAG } from '../constants/postFlags'
+import { supabase } from '../lib/supabaseClient'
+import { getAvatarUrl, getDisplayName } from '../utils/user'
+
+async function fetchProfilesByIds(userIds = []) {
+  const unique = [...new Set(userIds.filter(Boolean))]
+  if (unique.length === 0) return new Map()
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, display_name, avatar_url')
+    .in('id', unique)
+
+  if (error) return new Map()
+
+  return new Map((data ?? []).map((p) => [p.id, p]))
+}
+
+async function fetchCommentCounts(postIds = []) {
+  const unique = [...new Set(postIds.filter(Boolean))]
+  if (unique.length === 0) return new Map()
+
+  const { data, error } = await supabase
+    .from('comments')
+    .select('post_id')
+    .in('post_id', unique)
+
+  if (error) return new Map()
+
+  const countMap = new Map()
+  for (const row of data ?? []) {
+    const key = row.post_id
+    countMap.set(key, (countMap.get(key) ?? 0) + 1)
+  }
+  return countMap
+}
+
+function decoratePost(post, profileMap, commentsCountMap) {
+  const profile = profileMap.get(post.author_id)
+  const authorName = getDisplayName({ profile, fallbackId: post.author_id })
+  return {
+    ...post,
+    author_name: authorName,
+    author_avatar_url: getAvatarUrl({ profile }),
+    comments_count: commentsCountMap.get(post.id) ?? 0,
+  }
+}
+
+function sortPosts(posts, sortBy) {
+  if (sortBy === 'upvotes_count') {
+    return [...posts].sort((a, b) => (b.upvotes_count ?? 0) - (a.upvotes_count ?? 0))
+  }
+  if (sortBy === 'comments_count') {
+    return [...posts].sort((a, b) => (b.comments_count ?? 0) - (a.comments_count ?? 0))
+  }
+  if (sortBy === 'oldest') {
+    return [...posts].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+    )
+  }
+  return [...posts].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  )
+}
 
 export async function fetchPosts({
   searchTerm = '',
   sortBy = 'created_at',
   flagFilter = 'all',
 } = {}) {
-  const resolvedSortBy = sortBy === 'upvotes_count' ? 'upvotes_count' : 'created_at'
   let query = supabase
     .from('posts')
     .select(
-      'id, title, upvotes_count, created_at, content, image_url, flag, repost_of_post_id',
+      'id, author_id, title, upvotes_count, created_at, content, image_url, flag, repost_of_post_id',
     )
-    .order(resolvedSortBy, { ascending: false })
 
   const trimmedSearch = searchTerm.trim()
   if (trimmedSearch) {
@@ -24,22 +84,41 @@ export async function fetchPosts({
   }
 
   const { data, error } = await query
-
   if (error) throw error
-  return data ?? []
+
+  const posts = data ?? []
+  const [profileMap, commentsCountMap] = await Promise.all([
+    fetchProfilesByIds(posts.map((p) => p.author_id)),
+    fetchCommentCounts(posts.map((p) => p.id)),
+  ])
+
+  const decorated = posts.map((post) => decoratePost(post, profileMap, commentsCountMap))
+  return sortPosts(decorated, sortBy)
+}
+
+export async function fetchTrendingPosts(limit = 5) {
+  const posts = await fetchPosts({ sortBy: 'upvotes_count' })
+  return posts.slice(0, limit)
 }
 
 export async function fetchPostsByAuthor(authorId) {
   const { data, error } = await supabase
     .from('posts')
     .select(
-      'id, title, upvotes_count, created_at, content, image_url, flag, repost_of_post_id',
+      'id, author_id, title, upvotes_count, created_at, content, image_url, flag, repost_of_post_id',
     )
     .eq('author_id', authorId)
-    .order('created_at', { ascending: false })
 
   if (error) throw error
-  return data ?? []
+
+  const posts = data ?? []
+  const [profileMap, commentsCountMap] = await Promise.all([
+    fetchProfilesByIds(posts.map((p) => p.author_id)),
+    fetchCommentCounts(posts.map((p) => p.id)),
+  ])
+
+  const decorated = posts.map((post) => decoratePost(post, profileMap, commentsCountMap))
+  return sortPosts(decorated, 'created_at')
 }
 
 export async function createPost(postPayload) {
@@ -81,7 +160,15 @@ export async function fetchPostById(postId) {
     .single()
 
   if (error) throw error
-  return data
+
+  const profileMap = await fetchProfilesByIds([data.author_id])
+  const authorProfile = profileMap.get(data.author_id)
+
+  return {
+    ...data,
+    author_name: getDisplayName({ profile: authorProfile, fallbackId: data.author_id }),
+    author_avatar_url: getAvatarUrl({ profile: authorProfile }),
+  }
 }
 
 export async function fetchPostThreadRef(postId) {

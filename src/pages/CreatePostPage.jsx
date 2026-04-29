@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import PageBanner from '../components/layout/PageBanner'
 import PostForm from '../components/posts/PostForm'
 import { createPost, fetchPostThreadRef } from '../services/posts'
 
@@ -48,8 +49,10 @@ function CreatePostPage() {
 
   return (
     <section className="page-section">
-      <h2>Create Post</h2>
-      <p>Share a music thought, recommendation, or hot take.</p>
+      <PageBanner
+        title="Create Post"
+        subtitle="Share a music thought, recommendation, or hot take."
+      />
       {successMessage ? <p className="form-success">{successMessage}</p> : null}
       <PostForm
         onSubmit={handleCreatePost}

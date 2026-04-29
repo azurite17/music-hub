@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import { formatRelativeTime } from '../../utils/time'
+import { getInitials } from '../../utils/user'
 
 function excerpt(text, max = 160) {
   if (!text?.trim()) return ''
@@ -7,8 +9,9 @@ function excerpt(text, max = 160) {
 }
 
 function PostCard({ post, feedRich = false }) {
-  const createdAt = new Date(post.created_at).toLocaleString()
   const flagLabel = post.flag ? post.flag.replace(/^\w/, (c) => c.toUpperCase()) : ''
+  const authorName = post.author_name || 'music-fan'
+  const initials = getInitials(authorName)
 
   return (
     <article className="post-card">
@@ -20,23 +23,27 @@ function PostCard({ post, feedRich = false }) {
         </h3>
         {post.flag ? <span className="post-flag">{flagLabel}</span> : null}
       </div>
-      <div className="post-meta">
-        <span>Created: {createdAt}</span>
-        <span>Upvotes: {post.upvotes_count}</span>
-        {post.repost_of_post_id ? (
-          <span className="repost-badge">Repost</span>
-        ) : null}
+
+      <div className="post-author-row">
+        {post.author_avatar_url ? (
+          <img className="avatar-sm" src={post.author_avatar_url} alt={authorName} />
+        ) : (
+          <span className="avatar-sm avatar-fallback">{initials}</span>
+        )}
+        <span className="post-author-name">{authorName}</span>
+        <span className="dot-sep">•</span>
+        <span>{formatRelativeTime(post.created_at)}</span>
       </div>
-      {feedRich && post.content ? (
-        <p className="post-card-preview">{excerpt(post.content)}</p>
-      ) : null}
+
+      <div className="post-meta">
+        <span>Upvotes: {post.upvotes_count}</span>
+        <span>Comments: {post.comments_count ?? 0}</span>
+        {post.repost_of_post_id ? <span className="repost-badge">Repost</span> : null}
+      </div>
+
+      {feedRich && post.content ? <p className="post-card-preview">{excerpt(post.content)}</p> : null}
       {feedRich && post.image_url ? (
-        <img
-          className="post-card-thumb"
-          src={post.image_url}
-          alt=""
-          loading="lazy"
-        />
+        <img className="post-card-thumb" src={post.image_url} alt="" loading="lazy" />
       ) : null}
     </article>
   )

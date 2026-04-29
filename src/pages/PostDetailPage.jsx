@@ -14,11 +14,14 @@ import {
   upvotePost,
 } from '../services/posts'
 import { generatePostSummary } from '../services/summary'
+import { formatRelativeTime } from '../utils/time'
+import { getInitials } from '../utils/user'
 
 function PostDetailPage() {
   const { postId } = useParams()
   const navigate = useNavigate()
   const { isLoggedIn } = useAuth()
+
   const [post, setPost] = useState(null)
   const [repostParent, setRepostParent] = useState(null)
   const [comments, setComments] = useState([])
@@ -138,9 +141,7 @@ function PostDetailPage() {
     }
   }
 
-  const flagLabel = post?.flag
-    ? post.flag.replace(/^\w/, (c) => c.toUpperCase())
-    : ''
+  const flagLabel = post?.flag ? post.flag.replace(/^\w/, (c) => c.toUpperCase()) : ''
 
   return (
     <section className="page-section">
@@ -154,6 +155,17 @@ function PostDetailPage() {
             {post.flag ? <span className="post-flag detail">{flagLabel}</span> : null}
           </div>
 
+          <div className="post-author-row detail">
+            {post.author_avatar_url ? (
+              <img className="avatar-sm" src={post.author_avatar_url} alt={post.author_name} />
+            ) : (
+              <span className="avatar-sm avatar-fallback">{getInitials(post.author_name)}</span>
+            )}
+            <span className="post-author-name">{post.author_name}</span>
+            <span className="dot-sep">•</span>
+            <span>{formatRelativeTime(post.created_at)}</span>
+          </div>
+
           {post.repost_of_post_id && repostParent ? (
             <div className="repost-thread-card">
               <p className="repost-thread-label">Part of a thread — replying to</p>
@@ -163,14 +175,9 @@ function PostDetailPage() {
             </div>
           ) : null}
           {post.repost_of_post_id && !repostParent ? (
-            <p className="status-text">
-              Referenced post was removed or is unavailable.
-            </p>
+            <p className="status-text">Referenced post was removed or is unavailable.</p>
           ) : null}
 
-          <p className="post-meta-line">
-            Posted on {new Date(post.created_at).toLocaleString()}
-          </p>
           <p className="post-meta-line">Upvotes: {post.upvotes_count}</p>
 
           {post.content ? <p className="post-body">{post.content}</p> : null}
@@ -195,11 +202,7 @@ function PostDetailPage() {
                 <Link to={`/posts/${postId}/edit`} className="button-link secondary">
                   Edit Post
                 </Link>
-                <button
-                  className="button-link danger"
-                  type="button"
-                  onClick={handleDelete}
-                >
+                <button className="button-link danger" type="button" onClick={handleDelete}>
                   Delete Post
                 </button>
               </>
@@ -211,10 +214,7 @@ function PostDetailPage() {
           <section className="comments-section">
             <h3>Comments</h3>
             {isLoggedIn ? (
-              <CommentForm
-                onSubmit={handleCreateComment}
-                isSubmitting={isCommentSubmitting}
-              />
+              <CommentForm onSubmit={handleCreateComment} isSubmitting={isCommentSubmitting} />
             ) : (
               <p className="status-text">Login to leave a comment.</p>
             )}

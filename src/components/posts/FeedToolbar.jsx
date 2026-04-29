@@ -11,6 +11,8 @@ function FeedToolbar({
 }) {
   return (
     <div className="feed-toolbar">
+      <h3>Explore Feed</h3>
+
       <label className="toolbar-field">
         <span>Search by title</span>
         <input
@@ -24,7 +26,9 @@ function FeedToolbar({
         <span>Sort by</span>
         <select value={sortBy} onChange={(event) => onSortChange(event.target.value)}>
           <option value="created_at">Newest</option>
+          <option value="oldest">Oldest</option>
           <option value="upvotes_count">Most upvoted</option>
+          <option value="comments_count">Most commented</option>
         </select>
       </label>
 
@@ -42,7 +46,7 @@ function FeedToolbar({
 
       <div className="toolbar-actions">
         <button type="button" className="button-link secondary" onClick={onReset}>
-          Reset
+          Clear all
         </button>
       </div>
     </div>

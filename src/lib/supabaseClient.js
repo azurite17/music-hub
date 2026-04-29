@@ -3,9 +3,16 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  // Keeping this explicit helps catch setup issues early in development.
-  throw new Error('Missing Supabase environment variables.')
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
+
+if (!isSupabaseConfigured) {
+  console.error(
+    'Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY at build time. For Netlify manual deploy, run `npm run build` locally with a `.env` file present, then upload the `dist` folder.',
+  )
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Avoid crashing the whole app on a blank page if env vars were not inlined into the build.
+export const supabase = createClient(
+  supabaseUrl || 'https://invalid.supabase.co',
+  supabaseAnonKey || 'invalid-missing-build-env',
+)

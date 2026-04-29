@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import PageBanner from '../components/layout/PageBanner'
 import PostCard from '../components/posts/PostCard'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import { useAuth } from '../hooks/useAuth'
@@ -31,8 +32,7 @@ function MyPostsPage() {
 
   return (
     <section className="page-section">
-      <h2>My Posts</h2>
-      <p>Posts you have published.</p>
+      <PageBanner title="My Posts" subtitle="Posts you have published." />
 
       {isLoading ? <LoadingSpinner label="Loading your posts..." /> : null}
       {error ? <p className="form-error">{error}</p> : null}

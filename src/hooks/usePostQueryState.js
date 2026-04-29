@@ -10,27 +10,34 @@ const ALLOWED_FLAGS = new Set([
   ...POST_FLAG_OPTIONS.map((o) => o.value),
 ])
 
+const ALLOWED_SORTS = new Set([
+  'created_at',
+  'oldest',
+  'upvotes_count',
+  'comments_count',
+])
+
 function usePostQueryState() {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const queryState = useMemo(() => {
     const search = searchParams.get('search') ?? ''
-    const sortBy = searchParams.get('sortBy') ?? DEFAULT_SORT
+    const sortRaw = searchParams.get('sortBy') ?? DEFAULT_SORT
+    const sortBy = ALLOWED_SORTS.has(sortRaw) ? sortRaw : DEFAULT_SORT
+
     const flagRaw = searchParams.get('flag') ?? DEFAULT_FLAG
     const flag = ALLOWED_FLAGS.has(flagRaw) ? flagRaw : DEFAULT_FLAG
-    return {
-      search,
-      sortBy: sortBy === 'upvotes_count' ? 'upvotes_count' : DEFAULT_SORT,
-      flag,
-    }
+
+    return { search, sortBy, flag }
   }, [searchParams])
 
   function updateQueryState(nextState) {
     setSearchParams((currentParams) => {
       const params = new URLSearchParams(currentParams)
       const nextSearch = nextState.search?.trim() ?? ''
-      const nextSortBy =
-        nextState.sortBy === 'upvotes_count' ? 'upvotes_count' : DEFAULT_SORT
+      const nextSortRaw = nextState.sortBy ?? DEFAULT_SORT
+      const nextSortBy = ALLOWED_SORTS.has(nextSortRaw) ? nextSortRaw : DEFAULT_SORT
+
       const nextFlagRaw = nextState.flag ?? DEFAULT_FLAG
       const nextFlag = ALLOWED_FLAGS.has(nextFlagRaw) ? nextFlagRaw : DEFAULT_FLAG
 

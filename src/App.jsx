@@ -4,6 +4,7 @@ import AppShell from './components/layout/AppShell'
 import AuthPage from './pages/AuthPage'
 import CreatePostPage from './pages/CreatePostPage'
 import EditPostPage from './pages/EditPostPage'
+import ExploreFeedPage from './pages/ExploreFeedPage'
 import HomeFeedPage from './pages/HomeFeedPage'
 import MyPostsPage from './pages/MyPostsPage'
 import PostDetailPage from './pages/PostDetailPage'
@@ -16,6 +17,7 @@ function App() {
     <AppShell>
       <Routes>
         <Route path="/" element={<HomeFeedPage />} />
+        <Route path="/explore" element={<ExploreFeedPage />} />
         <Route
           path="/posts/new"
           element={
