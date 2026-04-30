@@ -1,5 +1,6 @@
 import { DEFAULT_POST_FLAG } from '../constants/postFlags'
 import { supabase } from '../lib/supabaseClient'
+import { coerceGenresArray, normalizePostGenres } from '../utils/genres'
 import { getAvatarUrl, getDisplayName } from '../utils/user'
 
 async function fetchProfilesByIds(userIds = []) {
@@ -43,7 +44,17 @@ function decoratePost(post, profileMap, commentsCountMap) {
     author_name: authorName,
     author_avatar_url: getAvatarUrl({ profile }),
     comments_count: commentsCountMap.get(post.id) ?? 0,
+    genres: coerceGenresArray(post.genres),
   }
+}
+
+/** Strip ILIKE wildcards from user input so search stays predictable and safe. */
+function sanitizeGenreSearchFragment(raw) {
+  return String(raw ?? '')
+    .trim()
+    .slice(0, 80)
+    .replace(/[%_\\]/g, '')
+    .trim()
 }
 
 function sortPosts(posts, sortBy) {
@@ -67,11 +78,13 @@ export async function fetchPosts({
   searchTerm = '',
   sortBy = 'created_at',
   flagFilter = 'all',
+  genreFilter = 'all',
+  genreSearch = '',
 } = {}) {
   let query = supabase
     .from('posts')
     .select(
-      'id, author_id, title, upvotes_count, created_at, content, image_url, flag, repost_of_post_id',
+      'id, author_id, title, upvotes_count, created_at, content, image_url, flag, repost_of_post_id, genres',
     )
 
   const trimmedSearch = searchTerm.trim()
@@ -81,6 +94,15 @@ export async function fetchPosts({
 
   if (flagFilter && flagFilter !== 'all') {
     query = query.eq('flag', flagFilter)
+  }
+
+  if (genreFilter && genreFilter !== 'all') {
+    query = query.contains('genres', [genreFilter])
+  }
+
+  const genreFragment = sanitizeGenreSearchFragment(genreSearch)
+  if (genreFragment) {
+    query = query.ilike('genres_flat', `%${genreFragment}%`)
   }
 
   const { data, error } = await query
@@ -105,7 +127,7 @@ export async function fetchPostsByAuthor(authorId) {
   const { data, error } = await supabase
     .from('posts')
     .select(
-      'id, author_id, title, upvotes_count, created_at, content, image_url, flag, repost_of_post_id',
+      'id, author_id, title, upvotes_count, created_at, content, image_url, flag, repost_of_post_id, genres',
     )
     .eq('author_id', authorId)
 
@@ -131,6 +153,7 @@ export async function createPost(postPayload) {
   }
 
   const repostId = postPayload.repostOfPostId?.trim()
+  const genres = normalizePostGenres(postPayload.genres)
   const payload = {
     author_id: userId,
     title: postPayload.title.trim(),
@@ -138,6 +161,7 @@ export async function createPost(postPayload) {
     image_url: postPayload.imageUrl.trim() || null,
     flag: postPayload.flag?.trim() || DEFAULT_POST_FLAG,
     repost_of_post_id: repostId || null,
+    genres,
   }
 
   const { data, error } = await supabase
@@ -154,7 +178,7 @@ export async function fetchPostById(postId) {
   const { data, error } = await supabase
     .from('posts')
     .select(
-      'id, author_id, title, content, image_url, upvotes_count, created_at, flag, repost_of_post_id',
+      'id, author_id, title, content, image_url, upvotes_count, created_at, flag, repost_of_post_id, genres',
     )
     .eq('id', postId)
     .single()
@@ -168,6 +192,7 @@ export async function fetchPostById(postId) {
     ...data,
     author_name: getDisplayName({ profile: authorProfile, fallbackId: data.author_id }),
     author_avatar_url: getAvatarUrl({ profile: authorProfile }),
+    genres: coerceGenresArray(data.genres),
   }
 }
 
@@ -193,11 +218,13 @@ export async function upvotePost(postId) {
 }
 
 export async function updatePost(postId, postPayload) {
+  const genres = normalizePostGenres(postPayload.genres)
   const payload = {
     title: postPayload.title.trim(),
     content: postPayload.content.trim() || null,
     image_url: postPayload.imageUrl.trim() || null,
     flag: postPayload.flag?.trim() || DEFAULT_POST_FLAG,
+    genres,
     updated_at: new Date().toISOString(),
   }
 

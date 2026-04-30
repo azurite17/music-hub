@@ -48,7 +48,17 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background-color: var(--bg);
+  /* Subtle notes texture behind the app (not the sticky header). */
+  background-image: linear-gradient(
+      color-mix(in srgb, var(--bg) 20%, transparent),
+      color-mix(in srgb, var(--bg) 20%, transparent)
+    ),
+    url('./assets/notesBackground.webp');
+  background-size: cover, cover;
+  background-position: center, center;
+  background-attachment: fixed, fixed;
+  background-repeat: no-repeat, no-repeat;
   color: var(--text);
 }
 

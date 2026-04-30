@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import emptyFeed from '../assets/emptyFeed.jpg'
 import PageBanner from '../components/layout/PageBanner'
 import PostCard from '../components/posts/PostCard'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
@@ -38,7 +40,13 @@ function MyPostsPage() {
       {error ? <p className="form-error">{error}</p> : null}
 
       {!isLoading && !error && posts.length === 0 ? (
-        <p className="status-text">You have not created any posts yet.</p>
+        <div className="placeholder-card">
+          <img className="empty-feed-image" src={emptyFeed} alt="No posts yet" />
+          <p className="status-text">You have not created any posts yet.</p>
+          <Link to="/posts/new" className="button-link">
+            Create your first post
+          </Link>
+        </div>
       ) : null}
 
       {!isLoading && !error && posts.length > 0 ? (

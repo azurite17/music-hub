@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import emptyFeed from '../assets/emptyFeed.jpg'
 import TrendingPanel from '../components/home/TrendingPanel'
 import PageBanner from '../components/layout/PageBanner'
 import FeedToolbar from '../components/posts/FeedToolbar'
@@ -28,6 +29,8 @@ function HomeFeedPage() {
             searchTerm: queryState.search,
             sortBy: queryState.sortBy,
             flagFilter: queryState.flag,
+            genreFilter: queryState.genre,
+            genreSearch: queryState.genreSearch,
           }),
           fetchTrendingPosts(6),
         ])
@@ -41,7 +44,7 @@ function HomeFeedPage() {
     }
 
     loadPosts()
-  }, [queryState.search, queryState.sortBy, queryState.flag])
+  }, [queryState.search, queryState.sortBy, queryState.flag, queryState.genre, queryState.genreSearch])
 
   return (
     <section className="page-section feed-shell">
@@ -49,31 +52,63 @@ function HomeFeedPage() {
         <aside className="feed-sidebar sticky-rail">
           <FeedToolbar
             search={queryState.search}
+            genreSearch={queryState.genreSearch}
             sortBy={queryState.sortBy}
             flag={queryState.flag}
+            genre={queryState.genre}
             onSearchChange={(nextSearch) =>
               updateQueryState({
                 search: nextSearch,
+                genreSearch: queryState.genreSearch,
                 sortBy: queryState.sortBy,
                 flag: queryState.flag,
+                genre: queryState.genre,
+              })
+            }
+            onGenreSearchChange={(nextGenreSearch) =>
+              updateQueryState({
+                search: queryState.search,
+                genreSearch: nextGenreSearch,
+                sortBy: queryState.sortBy,
+                flag: queryState.flag,
+                genre: queryState.genre,
               })
             }
             onSortChange={(nextSortBy) =>
               updateQueryState({
                 search: queryState.search,
+                genreSearch: queryState.genreSearch,
                 sortBy: nextSortBy,
                 flag: queryState.flag,
+                genre: queryState.genre,
               })
             }
             onFlagChange={(nextFlag) =>
               updateQueryState({
                 search: queryState.search,
+                genreSearch: queryState.genreSearch,
                 sortBy: queryState.sortBy,
                 flag: nextFlag,
+                genre: queryState.genre,
+              })
+            }
+            onGenreChange={(nextGenre) =>
+              updateQueryState({
+                search: queryState.search,
+                genreSearch: queryState.genreSearch,
+                sortBy: queryState.sortBy,
+                flag: queryState.flag,
+                genre: nextGenre,
               })
             }
             onReset={() =>
-              updateQueryState({ search: '', sortBy: 'created_at', flag: 'all' })
+              updateQueryState({
+                search: '',
+                genreSearch: '',
+                sortBy: 'created_at',
+                flag: 'all',
+                genre: 'all',
+              })
             }
           />
 
@@ -91,6 +126,7 @@ function HomeFeedPage() {
 
           {!isLoading && !error && posts.length === 0 ? (
             <div className="placeholder-card">
+              <img className="empty-feed-image" src={emptyFeed} alt="No posts in feed" />
               <p>No posts match your current filters yet.</p>
               <Link to="/posts/new" className="button-link">
                 Create your first post

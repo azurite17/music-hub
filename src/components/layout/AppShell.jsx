@@ -1,3 +1,4 @@
+import PostOAuthProfileRedirect from '../auth/PostOAuthProfileRedirect'
 import { isSupabaseConfigured } from '../../lib/supabaseClient'
 import ScrollToTopButton from '../ui/ScrollToTopButton'
 import Navbar from './Navbar'
@@ -12,6 +13,7 @@ function AppShell({ children }) {
           <code>dist</code> folder.
         </div>
       ) : null}
+      <PostOAuthProfileRedirect />
       <Navbar />
       <main className="page-content">{children}</main>
       <ScrollToTopButton />

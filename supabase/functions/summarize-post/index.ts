@@ -1,10 +1,15 @@
 // Supabase Edge Function: summarize-post
-// Uses school-hosted LLM endpoint (e.g. https://chat.hpc.fau.edu/).
-// Required secrets:
-// - LLM_API_KEY
-// Optional secrets:
-// - LLM_ENDPOINT (default: https://chat.hpc.fau.edu/)
-// - LLM_MODEL (default: openai/gemma4:26b)
+// OpenAI-compatible Chat Completions (works with Groq free tier and similar providers).
+//
+// Supabase secrets (Project → Edge Functions → Secrets):
+// - LLM_API_KEY   (required) — e.g. Groq API key from https://console.groq.com/
+// - LLM_ENDPOINT  (optional) — default: https://api.groq.com/openai/v1/chat/completions
+// - LLM_MODEL     (optional) — default: llama-3.1-8b-instant
+//
+// Groq: create a free key, paste as LLM_API_KEY. No credit card for the free developer tier.
+
+const DEFAULT_CHAT_URL = 'https://api.groq.com/openai/v1/chat/completions'
+const DEFAULT_MODEL = 'llama-3.1-8b-instant'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -18,8 +23,8 @@ Deno.serve(async (req) => {
 
   try {
     const apiKey = Deno.env.get('LLM_API_KEY')
-    const endpoint = Deno.env.get('LLM_ENDPOINT') ?? 'https://chat.hpc.fau.edu/'
-    const model = Deno.env.get('LLM_MODEL') ?? 'openai/gemma4:26b'
+    const endpoint = (Deno.env.get('LLM_ENDPOINT') ?? DEFAULT_CHAT_URL).replace(/\/$/, '')
+    const model = Deno.env.get('LLM_MODEL') ?? DEFAULT_MODEL
 
     if (!apiKey) {
       return new Response(
@@ -30,7 +35,7 @@ Deno.serve(async (req) => {
         }),
         {
           status: 200,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
         },
       )
     }
@@ -58,7 +63,7 @@ Requirements:
 - Neutral and helpful tone
 - Mention notable themes and sentiment when possible`
 
-    const llmResponse = await fetch(`${endpoint.replace(/\/$/, '')}/api/v1/messages`, {
+    const llmResponse = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -66,6 +71,8 @@ Requirements:
       },
       body: JSON.stringify({
         model,
+        temperature: 0.35,
+        max_tokens: 700,
         messages: [{ role: 'user', content: prompt }],
       }),
     })
@@ -101,10 +108,10 @@ Requirements:
     const raw = await llmResponse.json()
     let aiText = ''
 
-    if (typeof raw?.content?.[0]?.text === 'string') {
-      aiText = raw.content[0].text
-    } else if (typeof raw?.choices?.[0]?.message?.content === 'string') {
+    if (typeof raw?.choices?.[0]?.message?.content === 'string') {
       aiText = raw.choices[0].message.content
+    } else if (typeof raw?.content?.[0]?.text === 'string') {
+      aiText = raw.content[0].text
     } else if (typeof raw?.output_text === 'string') {
       aiText = raw.output_text
     } else {

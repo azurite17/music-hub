@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { OAUTH_PROFILE_FLAG } from '../components/auth/PostOAuthProfileRedirect'
 import { supabase } from '../lib/supabaseClient'
 
 function AuthPage() {
-  const location = useLocation()
   const navigate = useNavigate()
   const [mode, setMode] = useState('login')
   const [email, setEmail] = useState('')
@@ -11,8 +11,6 @@ function AuthPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-
-  const fromPath = location.state?.from ?? '/'
 
   async function handleEmailAuth(event) {
     event.preventDefault()
@@ -22,19 +20,25 @@ function AuthPage() {
 
     try {
       if (mode === 'signup') {
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
         })
         if (signUpError) throw signUpError
+        if (data?.session && data?.user?.id) {
+          navigate(`/users/${data.user.id}`, { replace: true })
+          return
+        }
         setMessage('Account created. Check your email for confirmation if required.')
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
         if (signInError) throw signInError
-        navigate(fromPath, { replace: true })
+        if (data?.user?.id) {
+          navigate(`/users/${data.user.id}`, { replace: true })
+        }
       }
     } catch (authError) {
       setError(authError.message ?? 'Authentication failed.')
@@ -46,12 +50,16 @@ function AuthPage() {
   async function handleGoogleLogin() {
     setError('')
     setMessage('')
+    sessionStorage.setItem(OAUTH_PROFILE_FLAG, '1')
     const redirectTo = `${window.location.origin}/`
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo },
     })
-    if (oauthError) setError(oauthError.message ?? 'Google login failed.')
+    if (oauthError) {
+      sessionStorage.removeItem(OAUTH_PROFILE_FLAG)
+      setError(oauthError.message ?? 'Google login failed.')
+    }
   }
 
   async function handlePasswordResetRequest() {

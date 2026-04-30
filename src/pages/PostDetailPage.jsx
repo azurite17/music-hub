@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import defaultAvatar1 from '../assets/defaultAvatar1.jpg'
 import CommentForm from '../components/comments/CommentForm'
 import CommentList from '../components/comments/CommentList'
 import PostSummaryCard from '../components/posts/PostSummaryCard'
@@ -15,7 +16,15 @@ import {
 } from '../services/posts'
 import { generatePostSummary } from '../services/summary'
 import { formatRelativeTime } from '../utils/time'
-import { getInitials } from '../utils/user'
+import { getAvatarVariantClass, getInitials } from '../utils/user'
+
+const FLAG_META = {
+  question: { icon: '❓', className: 'flag-question' },
+  opinion: { icon: '💬', className: 'flag-opinion' },
+  recommendation: { icon: '🎧', className: 'flag-recommendation' },
+  discussion: { icon: '🗣️', className: 'flag-discussion' },
+  general: { icon: '🎵', className: 'flag-general' },
+}
 
 function PostDetailPage() {
   const { postId } = useParams()
@@ -33,6 +42,7 @@ function PostDetailPage() {
   const [summary, setSummary] = useState('')
   const [summaryError, setSummaryError] = useState('')
   const [isSummaryLoading, setIsSummaryLoading] = useState(false)
+  const [upvoteBurst, setUpvoteBurst] = useState(false)
 
   useEffect(() => {
     async function loadDetail() {
@@ -70,6 +80,8 @@ function PostDetailPage() {
     try {
       const updated = await upvotePost(post.id)
       setPost((prev) => (prev ? { ...prev, upvotes_count: updated.upvotes_count } : prev))
+      setUpvoteBurst(true)
+      window.setTimeout(() => setUpvoteBurst(false), 650)
     } catch (upvoteError) {
       setActionError(upvoteError.message ?? 'Unable to upvote right now.')
     }
@@ -124,6 +136,7 @@ function PostDetailPage() {
             commentsCount: comments.length,
             flag: post.flag,
             repostOf: post.repost_of_post_id,
+            genres: (post.genres || []).join(', '),
           },
         ],
       }
@@ -142,6 +155,9 @@ function PostDetailPage() {
   }
 
   const flagLabel = post?.flag ? post.flag.replace(/^\w/, (c) => c.toUpperCase()) : ''
+  const flagMeta = post?.flag ? FLAG_META[post.flag] ?? FLAG_META.general : FLAG_META.general
+  const authorName = post?.author_name || 'music-fan'
+  const avatarVariant = getAvatarVariantClass(authorName)
 
   return (
     <section className="page-section">
@@ -149,86 +165,108 @@ function PostDetailPage() {
       {error ? <p className="form-error">{error}</p> : null}
 
       {!isLoading && !error && post ? (
-        <>
-          <div className="post-detail-head">
-            <h2>{post.title}</h2>
-            {post.flag ? <span className="post-flag detail">{flagLabel}</span> : null}
-          </div>
-
-          <div className="post-author-row detail">
-            {post.author_avatar_url ? (
-              <img className="avatar-sm" src={post.author_avatar_url} alt={post.author_name} />
-            ) : (
-              <span className="avatar-sm avatar-fallback">{getInitials(post.author_name)}</span>
-            )}
-            <span className="post-author-name">{post.author_name}</span>
-            <span className="dot-sep">•</span>
-            <span>{formatRelativeTime(post.created_at)}</span>
-          </div>
-
-          {post.repost_of_post_id && repostParent ? (
-            <div className="repost-thread-card">
-              <p className="repost-thread-label">Part of a thread — replying to</p>
-              <Link to={`/posts/${repostParent.id}`} className="repost-thread-link">
-                {repostParent.title}
-              </Link>
+        <div className="post-detail-layout">
+          <div className="post-detail-main">
+            <div className="post-detail-head">
+              <h2>{post.title}</h2>
+              {post.flag ? (
+                <span className={`post-flag detail ${flagMeta.className}`}>
+                  <span aria-hidden>{flagMeta.icon}</span> {flagLabel}
+                </span>
+              ) : null}
             </div>
-          ) : null}
-          {post.repost_of_post_id && !repostParent ? (
-            <p className="status-text">Referenced post was removed or is unavailable.</p>
-          ) : null}
 
-          <p className="post-meta-line">Upvotes: {post.upvotes_count}</p>
+            <div className="post-author-row detail">
+              {post.author_avatar_url ? (
+                <img className="avatar-sm" src={post.author_avatar_url} alt={authorName} />
+              ) : (
+                <span className={`avatar-stack ${avatarVariant}`}>
+                  <img className="avatar-sm avatar-default" src={defaultAvatar1} alt={authorName} />
+                  <span className="avatar-sm avatar-fallback">{getInitials(authorName)}</span>
+                </span>
+              )}
+              <Link to={`/users/${post.author_id}`} className="post-author-name">
+                {authorName}
+              </Link>
+              <span className="dot-sep">•</span>
+              <span>{formatRelativeTime(post.created_at)}</span>
+            </div>
 
-          {post.content ? <p className="post-body">{post.content}</p> : null}
-          {post.image_url ? (
-            <img className="post-image" src={post.image_url} alt={post.title} />
-          ) : null}
-
-          <div className="button-row">
-            <button className="button-link" type="button" onClick={handleUpvote}>
-              Upvote
-            </button>
-
-            <Link
-              to={`/posts/new?repost=${encodeURIComponent(post.id)}`}
-              className="button-link secondary"
-            >
-              Repost / quote
-            </Link>
-
-            {isOwner ? (
-              <>
-                <Link to={`/posts/${postId}/edit`} className="button-link secondary">
-                  Edit Post
+            {post.repost_of_post_id && repostParent ? (
+              <div className="repost-thread-card">
+                <p className="repost-thread-label">Part of a thread — replying to</p>
+                <Link to={`/posts/${repostParent.id}`} className="repost-thread-link">
+                  {repostParent.title}
                 </Link>
-                <button className="button-link danger" type="button" onClick={handleDelete}>
-                  Delete Post
-                </button>
-              </>
+              </div>
             ) : null}
+            {post.repost_of_post_id && !repostParent ? (
+              <p className="status-text">Referenced post was removed or is unavailable.</p>
+            ) : null}
+
+            <p className="post-meta-line">Upvotes: {post.upvotes_count}</p>
+
+            {post.genres?.length ? (
+              <ul className="post-detail-genres" aria-label="Genres">
+                {post.genres.map((g, index) => (
+                  <li key={`${g}-${index}`}>{g}</li>
+                ))}
+              </ul>
+            ) : null}
+
+            {post.content ? <p className="post-body">{post.content}</p> : null}
+            {post.image_url ? (
+              <img className="post-image" src={post.image_url} alt={post.title} />
+            ) : null}
+
+            <div className="button-row">
+              <button className="button-link" type="button" onClick={handleUpvote}>
+                Upvote
+              </button>
+              {upvoteBurst ? <span className="upvote-burst">+1 🎉</span> : null}
+
+              <Link
+                to={`/posts/new?repost=${encodeURIComponent(post.id)}`}
+                className="button-link secondary"
+              >
+                Repost / quote
+              </Link>
+
+              {isOwner ? (
+                <>
+                  <Link to={`/posts/${postId}/edit`} className="button-link secondary">
+                    Edit Post
+                  </Link>
+                  <button className="button-link danger" type="button" onClick={handleDelete}>
+                    Delete Post
+                  </button>
+                </>
+              ) : null}
+            </div>
+
+            {actionError ? <p className="form-error section-gap">{actionError}</p> : null}
+
+            <section className="comments-section">
+              <h3>Comments</h3>
+              {isLoggedIn ? (
+                <CommentForm onSubmit={handleCreateComment} isSubmitting={isCommentSubmitting} />
+              ) : (
+                <p className="status-text">Login to leave a comment.</p>
+              )}
+              <CommentList comments={comments} />
+            </section>
           </div>
 
-          {actionError ? <p className="form-error section-gap">{actionError}</p> : null}
-
-          <section className="comments-section">
-            <h3>Comments</h3>
-            {isLoggedIn ? (
-              <CommentForm onSubmit={handleCreateComment} isSubmitting={isCommentSubmitting} />
-            ) : (
-              <p className="status-text">Login to leave a comment.</p>
-            )}
-            <CommentList comments={comments} />
-          </section>
-
-          <PostSummaryCard
-            summary={summary}
-            isGenerating={isSummaryLoading}
-            onGenerate={handleGenerateSummary}
-            error={summaryError}
-            hasContentToSummarize={Boolean(post.content?.trim() || comments.length)}
-          />
-        </>
+          <aside className="post-detail-sidebar" aria-label="AI summary">
+            <PostSummaryCard
+              summary={summary}
+              isGenerating={isSummaryLoading}
+              onGenerate={handleGenerateSummary}
+              error={summaryError}
+              hasContentToSummarize={Boolean(post.content?.trim() || comments.length)}
+            />
+          </aside>
+        </div>
       ) : null}
     </section>
   )

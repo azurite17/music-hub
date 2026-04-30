@@ -28,3 +28,12 @@ export function getInitials(name) {
   if (words.length === 0) return 'M'
   return words.map((w) => w[0]?.toUpperCase() || '').join('')
 }
+
+export function getAvatarVariantClass(seed = '') {
+  const text = String(seed)
+  let hash = 0
+  for (let i = 0; i < text.length; i += 1) {
+    hash = (hash * 31 + text.charCodeAt(i)) % 3
+  }
+  return `avatar-variant-${hash}`
+}

@@ -4,6 +4,7 @@ import PostForm from '../components/posts/PostForm'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import { DEFAULT_POST_FLAG } from '../constants/postFlags'
 import { fetchPostById, updatePost } from '../services/posts'
+import { coerceGenresArray } from '../utils/genres'
 
 function EditPostPage() {
   const { postId } = useParams()
@@ -16,6 +17,7 @@ function EditPostPage() {
     content: '',
     imageUrl: '',
     flag: DEFAULT_POST_FLAG,
+    genres: [],
   })
 
   useEffect(() => {
@@ -28,6 +30,7 @@ function EditPostPage() {
           content: post.content ?? '',
           imageUrl: post.image_url ?? '',
           flag: post.flag ?? DEFAULT_POST_FLAG,
+          genres: coerceGenresArray(post.genres),
         })
       } catch (loadError) {
         setError(loadError.message ?? 'Unable to load post for editing.')

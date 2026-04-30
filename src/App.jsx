@@ -4,12 +4,12 @@ import AppShell from './components/layout/AppShell'
 import AuthPage from './pages/AuthPage'
 import CreatePostPage from './pages/CreatePostPage'
 import EditPostPage from './pages/EditPostPage'
-import ExploreFeedPage from './pages/ExploreFeedPage'
 import HomeFeedPage from './pages/HomeFeedPage'
 import MyPostsPage from './pages/MyPostsPage'
 import PostDetailPage from './pages/PostDetailPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import SettingsPage from './pages/SettingsPage'
+import UserProfilePage from './pages/UserProfilePage'
 import './App.css'
 
 function App() {
@@ -17,7 +17,7 @@ function App() {
     <AppShell>
       <Routes>
         <Route path="/" element={<HomeFeedPage />} />
-        <Route path="/explore" element={<ExploreFeedPage />} />
+        <Route path="/explore" element={<Navigate to="/" replace />} />
         <Route
           path="/posts/new"
           element={
@@ -43,7 +43,15 @@ function App() {
             </AuthGuard>
           }
         />
-        <Route path="/settings" element={<SettingsPage />} />
+        <Route
+          path="/settings"
+          element={
+            <AuthGuard>
+              <SettingsPage />
+            </AuthGuard>
+          }
+        />
+        <Route path="/users/:userId" element={<UserProfilePage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
