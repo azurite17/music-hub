@@ -23,6 +23,9 @@ function AuthPage() {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth`,
+          },
         })
         if (signUpError) throw signUpError
         if (data?.session && data?.user?.id) {
