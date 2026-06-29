@@ -1,6 +1,6 @@
-# Web Development Final Project - *Music Hub*
+# *Music Hub*
 
-Submitted by: **Madison Peterkin - Z23582168**
+Created by: **Madison Peterkin **
 
 This web app: **is a social music discussion platform focused on sharing recommendations, opinions, and questions about songs, artists, and genres. Users can create posts with optional long-form text, tag posts by category/genre, and attach images by URL or direct device upload. The home feed supports search, sorting, and filtering so people can discover relevant discussions quickly, while each post page provides comments, upvotes, and repost threading for deeper conversation. The app also includes account-based features like profile customization (including avatar upload), plus an AI-generated summary panel to help readers quickly understand active discussions.**
 
@@ -68,17 +68,15 @@ The following **additional** features are implemented:
 
 Here's a walkthrough of implemented user stories:
 
-<img src='http://i.imgur.com/link/to/your/gif/file.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='https://private-user-images.githubusercontent.com/212908794/586779071-e2f09110-b68e-4356-89f4-ae84818d61e5.gif?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3ODI3NjEyMTksIm5iZiI6MTc4Mjc2MDkxOSwicGF0aCI6Ii8yMTI5MDg3OTQvNTg2Nzc5MDcxLWUyZjA5MTEwLWI2OGUtNDM1Ni04OWY0LWFlODQ4MThkNjFlNS5naWY_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwNjI5JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDYyOVQxOTIxNTlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1kYTk0ZTkyYmZiZDEyMjAyYjI4MjQ5OTA3MmVlMmE3MmI0N2I2NTY2OTZiNTRmMmMxNjEyYWQ4N2Q5YmJlOWI4JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZyZXNwb25zZS1jb250ZW50LXR5cGU9aW1hZ2UlMkZnaWYifQ.FmMeExe6_sGvVVgBQcmbFe2l9DjYNoq9wQvWupkWTwI' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+
+[![Watch the video](https://img.youtube.com/vi/Pg-qwXkSbcE/0.jpg)](https://youtu.be/Pg-qwXkSbcE) 
 
 GIF created with ...
-<!-- Recommended tools:
-[Kap](https://getkap.co/) for macOS
+
 [ScreenToGif](https://www.screentogif.com/) for Windows
-[peek](https://github.com/phw/peek) for Linux. -->
 
-## Notes
 
-Describe any challenges encountered while building the app.
 
 ## License
 
