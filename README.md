@@ -1,6 +1,6 @@
 # *Music Hub*
 
-Created by: **Madison Peterkin **
+Created by: **Madison Peterkin**
 
 This web app: **is a social music discussion platform focused on sharing recommendations, opinions, and questions about songs, artists, and genres. Users can create posts with optional long-form text, tag posts by category/genre, and attach images by URL or direct device upload. The home feed supports search, sorting, and filtering so people can discover relevant discussions quickly, while each post page provides comments, upvotes, and repost threading for deeper conversation. The app also includes account-based features like profile customization (including avatar upload), plus an AI-generated summary panel to help readers quickly understand active discussions.**
 
